@@ -135,6 +135,10 @@ export function GameScreen({
               value={moveInput}
               onChange={(e) => setMoveInput(e.target.value)}
               disabled={!isPlayerTurn || thinking || !ready}
+              autoComplete="off"
+              spellCheck="false"
+              autoCorrect="off"
+              autoCapitalize="off"
             />
             <Button type="submit" disabled={!isPlayerTurn || thinking || !ready}>
               Play
