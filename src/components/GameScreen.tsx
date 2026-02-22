@@ -1,7 +1,6 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -13,6 +12,7 @@ import { useGameLogic } from "@/hooks/useGameLogic";
 import type { DifficultyLevel, PlayerColor } from "@/types";
 import { MoveHistoryDisplay } from "./MoveHistoryDisplay";
 import { NotationGuide } from "./NotationGuide";
+import { ChessKeyboard } from "./ChessKeyboard";
 
 export interface GameScreenProps {
   gameId: string;
@@ -61,15 +61,47 @@ export function GameScreen({
 
   const moveInputRef = useRef<HTMLInputElement>(null);
   const prevIsPlayerTurn = useRef(isPlayerTurn);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.matchMedia("(max-width: 640px)").matches ||
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0;
+      setIsMobile(mobile);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Keep input focused when it becomes the player's turn (e.g. after engine move)
-  // so mobile users can type their next move without tapping the input again.
+  // so desktop users can type their next move without clicking the input again.
   useEffect(() => {
-    if (isPlayerTurn && !prevIsPlayerTurn.current) {
+    if (!isMobile && isPlayerTurn && !prevIsPlayerTurn.current) {
       moveInputRef.current?.focus();
     }
     prevIsPlayerTurn.current = isPlayerTurn;
-  }, [isPlayerTurn]);
+  }, [isPlayerTurn, isMobile]);
+
+  const handleChessKey = (key: string) => {
+    if (isPlayerTurn && !thinking && ready) {
+      setMoveInput((prev) => prev + key);
+    }
+  };
+
+  const handleBackspace = () => {
+    if (isPlayerTurn && !thinking && ready) {
+      setMoveInput((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const handleKeyboardSubmit = () => {
+    if (isPlayerTurn && !thinking && ready) {
+      handleSubmitMove({ preventDefault: () => {} } as React.FormEvent);
+    }
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto relative">
@@ -136,35 +168,60 @@ export function GameScreen({
         />
 
         {!gameOver && (
-          <form onSubmit={handleSubmitMove} className="flex flex-col sm:flex-row gap-2">
-            <Input
-              ref={moveInputRef}
-              placeholder={moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move"}
-              value={moveInput}
-              onChange={(e) => {
-                if (isPlayerTurn && !thinking && ready) setMoveInput(e.target.value);
-              }}
-              disabled={!ready}
-              readOnly={!isPlayerTurn || thinking}
-              autoComplete="off"
-              spellCheck="false"
-              autoCorrect="off"
-              autoCapitalize="off"
-              enterKeyHint="go"
-              inputMode="text"
-              pattern="[a-hNBRQKxO0-8+#=\-]*"
-              className={`text-base ${!isPlayerTurn || thinking ? "opacity-50" : ""}`}
-            />
-            <Button
-              type="submit"
-              disabled={!isPlayerTurn || thinking || !ready}
-              className="min-h-[44px] sm:min-h-0 shrink-0"
-              onPointerDown={(e) => e.preventDefault()}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              Play
-            </Button>
-          </form>
+          isMobile ? (
+            /* Mobile: Custom display + Chess keyboard */
+            <div className="space-y-3">
+              <div
+                className={`flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background ${
+                  !isPlayerTurn || thinking ? "opacity-50" : ""
+                }`}
+              >
+                <span className={moveInput ? "text-foreground" : "text-muted-foreground"}>
+                  {moveInput || (moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move")}
+                </span>
+                {isPlayerTurn && !thinking && ready && (
+                  <span className="animate-pulse ml-0.5">|</span>
+                )}
+              </div>
+              <ChessKeyboard
+                onKey={handleChessKey}
+                onBackspace={handleBackspace}
+                onSubmit={handleKeyboardSubmit}
+                disabled={!isPlayerTurn || thinking || !ready}
+              />
+            </div>
+          ) : (
+            /* Desktop: Native input with Play button */
+            <form onSubmit={handleSubmitMove} className="flex gap-2">
+              <input
+                ref={moveInputRef}
+                type="text"
+                placeholder={moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move"}
+                value={moveInput}
+                onChange={(e) => {
+                  if (isPlayerTurn && !thinking && ready) setMoveInput(e.target.value);
+                }}
+                disabled={!ready}
+                readOnly={!isPlayerTurn || thinking}
+                autoComplete="off"
+                spellCheck={false}
+                autoCorrect="off"
+                autoCapitalize="off"
+                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  !isPlayerTurn || thinking ? "opacity-50" : ""
+                }`}
+              />
+              <Button
+                type="submit"
+                disabled={!isPlayerTurn || thinking || !ready}
+                className="shrink-0"
+                onPointerDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                Play
+              </Button>
+            </form>
+          )
         )}
 
         {gameOver && (
