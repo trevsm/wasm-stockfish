@@ -1,14 +1,17 @@
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import type { Chess } from "chess.js";
 
 interface MoveHistoryDisplayProps {
   moveHistory: Array<{ san: string; by: "player" | "engine" }>;
   chess: Chess;
+  thinking?: boolean;
+  status?: string;
+  moveError?: string;
 }
 
-export function MoveHistoryDisplay({ moveHistory, chess }: MoveHistoryDisplayProps) {
+export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveError }: MoveHistoryDisplayProps) {
   const [showBoard, setShowBoard] = useState(false);
 
   const movePairs = (() => {
@@ -23,6 +26,34 @@ export function MoveHistoryDisplay({ moveHistory, chess }: MoveHistoryDisplayPro
     }
     return pairs;
   })();
+
+  const statusMessage = useMemo(() => {
+    if (moveError) {
+      return { text: moveError, isError: true };
+    }
+    if (status) {
+      return { text: status, isError: true };
+    }
+    if (thinking) {
+      return { text: "Stockfish is thinking…", isError: false };
+    }
+    if (chess.isCheckmate()) {
+      const winner = chess.turn() === "w" ? "Black" : "White";
+      return { text: `Checkmate — ${winner} wins`, isError: true };
+    }
+    if (chess.isStalemate()) {
+      return { text: "Stalemate — Draw", isError: true };
+    }
+    if (chess.isDraw()) {
+      if (chess.isThreefoldRepetition()) return { text: "Draw by threefold repetition", isError: true };
+      if (chess.isInsufficientMaterial()) return { text: "Draw by insufficient material", isError: true };
+      return { text: "Draw", isError: true };
+    }
+    if (chess.isCheck()) {
+      return { text: `${chess.turn() === "w" ? "White" : "Black"} is in check`, isError: true };
+    }
+    return null;
+  }, [chess, thinking, status, moveError]);
 
   return (
     <div className="space-y-1">
@@ -86,6 +117,9 @@ export function MoveHistoryDisplay({ moveHistory, chess }: MoveHistoryDisplayPro
           )}
         </div>
       )}
+      <p className={`text-sm font-medium min-h-[1.25rem] ${statusMessage?.isError ? "text-destructive" : "text-muted-foreground"}`}>
+        {statusMessage?.text ?? "\u00A0"}
+      </p>
     </div>
   );
 }

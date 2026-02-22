@@ -127,20 +127,13 @@ export function GameScreen({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <MoveHistoryDisplay moveHistory={moveHistory} chess={chess} />
-
-        {status && (
-          <p className="text-sm font-medium text-destructive">{status}</p>
-        )}
-        {moveError && (
-          <p className="text-sm font-medium text-destructive">{moveError}</p>
-        )}
-
-        {thinking && (
-          <p className="text-sm text-muted-foreground">
-            Stockfish is thinking…
-          </p>
-        )}
+        <MoveHistoryDisplay
+          moveHistory={moveHistory}
+          chess={chess}
+          thinking={thinking}
+          status={status}
+          moveError={moveError}
+        />
 
         {!gameOver && (
           <form onSubmit={handleSubmitMove} className="flex flex-col sm:flex-row gap-2">

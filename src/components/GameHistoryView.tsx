@@ -164,9 +164,9 @@ export function GameHistoryView({ record, onBack }: GameHistoryViewProps) {
               <pre className="rounded-md border bg-muted/50 p-3 text-xs font-mono overflow-x-auto whitespace-pre [-webkit-overflow-scrolling:touch]">
                 {chess.ascii()}
               </pre>
-              {statusMessage && (
-                <p className="text-sm font-medium text-destructive">{statusMessage}</p>
-              )}
+              <p className="text-sm font-medium text-destructive min-h-[1.25rem]">
+                {statusMessage ?? "\u00A0"}
+              </p>
               <div className="flex items-center justify-between">
                 <div className="flex gap-1">
                   <Button
