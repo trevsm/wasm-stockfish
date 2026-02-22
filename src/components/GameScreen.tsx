@@ -154,11 +154,11 @@ export function GameScreen({
               disabled={!isPlayerTurn || thinking || !ready}
               className="min-h-[44px] sm:min-h-0 shrink-0"
               onMouseDown={(e) => e.preventDefault()}
-              onTouchStart={(e) => e.preventDefault()}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 if (!e.currentTarget.disabled && e.currentTarget.form) {
                   e.currentTarget.form.requestSubmit();
+                  moveInputRef.current?.focus();
                 }
               }}
             >
