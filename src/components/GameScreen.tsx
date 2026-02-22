@@ -151,6 +151,8 @@ export function GameScreen({
               autoCorrect="off"
               autoCapitalize="off"
               enterKeyHint="go"
+              inputMode="text"
+              pattern="[a-hNBRQKxO0-8+#=\-]*"
               className={`text-base ${!isPlayerTurn || thinking ? "opacity-50" : ""}`}
             />
             <Button
