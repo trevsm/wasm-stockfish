@@ -141,26 +141,24 @@ export function GameScreen({
               ref={moveInputRef}
               placeholder={moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move"}
               value={moveInput}
-              onChange={(e) => setMoveInput(e.target.value)}
-              disabled={!isPlayerTurn || thinking || !ready}
+              onChange={(e) => {
+                if (isPlayerTurn && !thinking && ready) setMoveInput(e.target.value);
+              }}
+              disabled={!ready}
+              readOnly={!isPlayerTurn || thinking}
               autoComplete="off"
               spellCheck="false"
               autoCorrect="off"
               autoCapitalize="off"
-              className="text-base"
+              enterKeyHint="go"
+              className={`text-base ${!isPlayerTurn || thinking ? "opacity-50" : ""}`}
             />
             <Button
               type="submit"
               disabled={!isPlayerTurn || thinking || !ready}
               className="min-h-[44px] sm:min-h-0 shrink-0"
+              onPointerDown={(e) => e.preventDefault()}
               onMouseDown={(e) => e.preventDefault()}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                if (!e.currentTarget.disabled && e.currentTarget.form) {
-                  e.currentTarget.form.requestSubmit();
-                  moveInputRef.current?.focus();
-                }
-              }}
             >
               Play
             </Button>
