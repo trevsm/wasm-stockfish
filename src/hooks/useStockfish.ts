@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DifficultySettings } from "@/types";
 
 const MOVETIME_MS = 1000;
 
-export function useStockfish(elo: number) {
+export function useStockfish(settings: DifficultySettings) {
   const workerRef = useRef<Worker | null>(null);
   const [ready, setReady] = useState(false);
   const resolveRef = useRef<((move: string) => void) | null>(null);
   const rejectRef = useRef<((err: Error) => void) | null>(null);
+
+  const settingsKey =
+    settings.type === "skill" ? `skill-${settings.level}` : `elo-${settings.elo}`;
 
   useEffect(() => {
     const worker = new Worker("/stockfish.js", { type: "module" });
@@ -30,8 +34,14 @@ export function useStockfish(elo: number) {
     worker.addEventListener("message", handleMessage);
 
     worker.postMessage("uci");
-    worker.postMessage("setoption name UCI_LimitStrength value true");
-    worker.postMessage(`setoption name UCI_Elo value ${elo}`);
+
+    if (settings.type === "skill") {
+      worker.postMessage(`setoption name Skill Level value ${settings.level}`);
+    } else {
+      worker.postMessage("setoption name UCI_LimitStrength value true");
+      worker.postMessage(`setoption name UCI_Elo value ${settings.elo}`);
+    }
+
     worker.postMessage("ucinewgame");
     worker.postMessage("isready");
 
@@ -42,7 +52,7 @@ export function useStockfish(elo: number) {
       workerRef.current = null;
       setReady(false);
     };
-  }, [elo]);
+  }, [settingsKey]);
 
   const getBestMove = useCallback((fen: string): Promise<string> => {
     return new Promise((resolve, reject) => {

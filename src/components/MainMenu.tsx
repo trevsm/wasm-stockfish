@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/select";
 import { deleteGameRecord, getGameRecords } from "@/lib/storage";
 import type { DifficultyLevel, GameRecord, PlayerColor } from "@/types";
-import { DIFFICULTY_ELO } from "@/types";
+import { getApproxElo } from "@/types";
 
 const DIFFICULTIES: DifficultyLevel[] = [
+  "Novice",
   "Beginner",
   "Easy",
   "Medium",
@@ -88,7 +89,7 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
             <SelectContent>
               {DIFFICULTIES.map((d) => (
                 <SelectItem key={d} value={d}>
-                  {d} (~{DIFFICULTY_ELO[d]} Elo)
+                  {d} (~{getApproxElo(d)} Elo)
                 </SelectItem>
               ))}
             </SelectContent>

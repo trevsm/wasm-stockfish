@@ -17,7 +17,7 @@ import {
   saveGameRecord,
 } from "@/lib/storage";
 import type { DifficultyLevel, GameResult, PlayerColor } from "@/types";
-import { DIFFICULTY_ELO } from "@/types";
+import { DIFFICULTY_SETTINGS } from "@/types";
 
 interface GameScreenProps {
   gameId: string;
@@ -38,8 +38,8 @@ export function GameScreen({
   onResign,
   onGameEnd,
 }: GameScreenProps) {
-  const elo = DIFFICULTY_ELO[difficulty];
-  const { ready, getBestMove } = useStockfish(elo);
+  const settings = DIFFICULTY_SETTINGS[difficulty];
+  const { ready, getBestMove } = useStockfish(settings);
   const [chess] = useState(() => {
     const c = new Chess();
     if (initialMoves.length > 0) {

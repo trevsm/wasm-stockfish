@@ -19,12 +19,22 @@ export interface ActiveGame {
   moves: Array<{ san: string; by: "player" | "engine" }>;
 }
 
-export type DifficultyLevel = "Beginner" | "Easy" | "Medium" | "Hard" | "Expert";
+export type DifficultyLevel = "Novice" | "Beginner" | "Easy" | "Medium" | "Hard" | "Expert";
 
-export const DIFFICULTY_ELO: Record<DifficultyLevel, number> = {
-  Beginner: 800,
-  Easy: 1200,
-  Medium: 1500,
-  Hard: 2000,
-  Expert: 2500,
+export type DifficultySettings =
+  | { type: "skill"; level: number; approxElo: number }
+  | { type: "elo"; elo: number };
+
+export const DIFFICULTY_SETTINGS: Record<DifficultyLevel, DifficultySettings> = {
+  Novice: { type: "skill", level: 0, approxElo: 800 },
+  Beginner: { type: "skill", level: 3, approxElo: 1000 },
+  Easy: { type: "skill", level: 6, approxElo: 1200 },
+  Medium: { type: "elo", elo: 1500 },
+  Hard: { type: "elo", elo: 2000 },
+  Expert: { type: "elo", elo: 2500 },
 };
+
+export function getApproxElo(difficulty: DifficultyLevel): number {
+  const settings = DIFFICULTY_SETTINGS[difficulty];
+  return settings.type === "skill" ? settings.approxElo : settings.elo;
+}
