@@ -1,7 +1,7 @@
 {
   "name": "wasm-stockfish",
   "private": true,
-  "version": "1.0.8",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');const p=require('path');const src=p.join('node_modules','stockfish','bin','stockfish-18-lite-single');const dest=p.join('public');fs.mkdirSync(dest,{recursive:true});fs.copyFileSync(src+'.js',p.join(dest,'stockfish.js'));fs.copyFileSync(src+'.wasm',p.join(dest,'stockfish.wasm'));\"",
