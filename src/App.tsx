@@ -144,7 +144,9 @@ export default function App() {
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 pt-12 sm:pt-6">
       <div className="absolute top-2 left-4 right-4 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">v{__APP_VERSION__}</span>
-        <ThemeToggle />
+        <div className="-mr-2">
+          <ThemeToggle />
+        </div>
       </div>
 
       {state.screen === "menu" && (
