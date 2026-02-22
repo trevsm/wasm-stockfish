@@ -94,54 +94,73 @@ function getValidKeys(input: string, _chess: Chess): Set<string> {
     return valid;
   }
 
+  const startsWithPiece = isPiece(input[0]);
+  
   // Check if we have a complete destination square at the end
   const endsWithSquare = input.match(/[a-h][1-8]$/);
   
-  if (isRank(lastChar)) {
-    if (endsWithSquare) {
-      // Move might be complete - allow check/checkmate symbols
-      valid.add("+");
-      valid.add("#");
-      // Pawn promotion on 1st or 8th rank
-      if (lastChar === "1" || lastChar === "8") {
-        valid.add("=");
-      }
-      // Rare: could still continue with destination file for full disambiguation (Qd1e2)
-      FILES.forEach((f) => valid.add(f));
-    } else {
-      // After disambiguation rank (e.g., N3), expect file or x
-      FILES.forEach((f) => valid.add(f));
-      valid.add("x");
+  // Count how many complete squares we have (to detect if move should be done)
+  const squareMatches = input.match(/[a-h][1-8]/g);
+  const squareCount = squareMatches ? squareMatches.length : 0;
+  
+  
+  if (isRank(lastChar) && endsWithSquare) {
+    // We have a complete square - move is done (only check/checkmate/promotion allowed)
+    valid.add("+");
+    valid.add("#");
+    
+    // Pawn promotion on 1st or 8th rank
+    if (lastChar === "1" || lastChar === "8") {
+      valid.add("=");
     }
+    
+    return valid;
+  }
+
+  if (isRank(lastChar) && !endsWithSquare) {
+    // After disambiguation rank (e.g., N3), expect file or x
+    FILES.forEach((f) => valid.add(f));
+    valid.add("x");
     return valid;
   }
 
   if (isFile(lastChar)) {
     // After a file: rank is always valid
     RANKS.forEach((r) => valid.add(r));
-    // x is valid for captures (pawn: exd4, piece: Nexd4)
-    valid.add("x");
-    // Another file is valid for disambiguation if we haven't completed a square yet
-    // e.g., Ra (could become Rae1) or Ne (could become Ned4)
-    if (!endsWithSquare) {
-      FILES.forEach((f) => valid.add(f));
+    
+    // x is valid for captures if we don't already have a complete square
+    if (!endsWithSquare || (startsWithPiece && squareCount < 2)) {
+      valid.add("x");
     }
+    
+    // Another file is only valid for piece disambiguation before we have a square
+    // e.g., Ra -> Rae1, Ne -> Ned4
+    // But only if: we only have one file so far, and it's a different file
+    if (startsWithPiece && squareCount === 0) {
+      const filesInInput = input.match(/[a-h]/g) || [];
+      // Only allow a second file if we have exactly one file so far
+      if (filesInInput.length === 1) {
+        FILES.forEach((f) => {
+          // Don't allow the same file twice
+          if (f !== lastChar) valid.add(f);
+        });
+      }
+    }
+    
     return valid;
   }
 
-  // After piece + disambiguation (e.g., N3, Nd, N3d, Nde)
-  if (isPiece(input[0]) && len > 1) {
-    // Could need file, rank, or x depending on context
+  // After piece + other chars (disambiguation scenarios)
+  if (startsWithPiece && len > 1) {
     FILES.forEach((f) => valid.add(f));
     RANKS.forEach((r) => valid.add(r));
     valid.add("x");
     return valid;
   }
 
-  // Fallback: allow common continuations
+  // Fallback: shouldn't normally reach here
   FILES.forEach((f) => valid.add(f));
   RANKS.forEach((r) => valid.add(r));
-  valid.add("x");
 
   return valid;
 }

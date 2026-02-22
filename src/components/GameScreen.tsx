@@ -179,9 +179,6 @@ export function GameScreen({
                 <span className={moveInput ? "text-foreground" : "text-muted-foreground"}>
                   {moveInput || (moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move")}
                 </span>
-                {isPlayerTurn && !thinking && ready && (
-                  <span className="animate-pulse ml-0.5">|</span>
-                )}
               </div>
               <ChessKeyboard
                 input={moveInput}
