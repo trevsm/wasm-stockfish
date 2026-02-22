@@ -67,6 +67,7 @@
 
 /* Safe area insets for notched devices */
 .safe-top-pos { top: 1rem; }
+.safe-left { left: 1rem; }
 .safe-right { right: 1rem; }
 @supports (right: env(safe-area-inset-right)) {
   .safe-top { padding-top: env(safe-area-inset-top); }
@@ -76,5 +77,6 @@
     padding-right: env(safe-area-inset-right);
   }
   .safe-top-pos { top: max(1rem, env(safe-area-inset-top)); }
+  .safe-left { left: max(1rem, env(safe-area-inset-left)); }
   .safe-right { right: max(1rem, env(safe-area-inset-right)); }
 }

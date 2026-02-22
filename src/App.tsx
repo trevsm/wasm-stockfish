@@ -142,6 +142,9 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6">
+      <div className="absolute safe-top-pos safe-left text-xs text-muted-foreground">
+        v{__APP_VERSION__}
+      </div>
       <div className="absolute safe-top-pos safe-right">
         <ThemeToggle />
       </div>
