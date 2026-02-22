@@ -4,20 +4,24 @@ import { Button } from "@/components/ui/button";
 import type { Chess } from "chess.js";
 
 interface MoveHistoryDisplayProps {
-  moveHistory: Array<{ san: string; by: "player" | "engine" }>;
+  moveHistory: Array<{ san: string; by: "player" | "engine" | "opponent" }>;
   chess: Chess;
   thinking?: boolean;
   status?: string;
   moveError?: string;
+  /** When true, status is shown as success (e.g. "Puzzle solved!") instead of error */
+  statusIsSuccess?: boolean;
+  /** When true, show the board by default instead of move history */
+  defaultShowBoard?: boolean;
 }
 
-export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveError }: MoveHistoryDisplayProps) {
-  const [showBoard, setShowBoard] = useState(false);
+export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveError, statusIsSuccess, defaultShowBoard }: MoveHistoryDisplayProps) {
+  const [showBoard, setShowBoard] = useState(!!defaultShowBoard);
 
   const movePairs = (() => {
     const pairs: Array<{
-      white: { san: string; by: "player" | "engine" };
-      black?: { san: string; by: "player" | "engine" };
+      white: { san: string; by: "player" | "engine" | "opponent" };
+      black?: { san: string; by: "player" | "engine" | "opponent" };
     }> = [];
     for (let i = 0; i < moveHistory.length; i += 2) {
       const white = moveHistory[i];
@@ -32,7 +36,7 @@ export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveE
       return { text: moveError, isError: true };
     }
     if (status) {
-      return { text: status, isError: true };
+      return { text: status, isError: !statusIsSuccess };
     }
     if (thinking) {
       return { text: "Stockfish is thinking…", isError: false };
@@ -53,7 +57,7 @@ export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveE
       return { text: `${chess.turn() === "w" ? "White" : "Black"} is in check`, isError: true };
     }
     return null;
-  }, [chess, thinking, status, moveError]);
+  }, [chess, thinking, status, moveError, statusIsSuccess]);
 
   return (
     <div className="space-y-1">
@@ -117,7 +121,7 @@ export function MoveHistoryDisplay({ moveHistory, chess, thinking, status, moveE
           )}
         </div>
       )}
-      <p className={`text-sm font-medium min-h-[1.25rem] ${statusMessage?.isError ? "text-destructive" : "text-muted-foreground"}`}>
+      <p className={`text-sm font-medium min-h-[1.25rem] ${statusMessage?.isError ? "text-destructive" : statusMessage?.text ? "text-primary" : "text-muted-foreground"}`}>
         {statusMessage?.text ?? "\u00A0"}
       </p>
     </div>

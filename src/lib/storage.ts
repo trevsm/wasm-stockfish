@@ -1,7 +1,8 @@
-import type { ActiveGame, GameRecord } from "@/types";
+import type { ActiveGame, GameRecord, PuzzleProgress } from "@/types";
 
 const STORAGE_KEY = "text-chess-games";
 const ACTIVE_KEY = "text-chess-active";
+const PUZZLE_PROGRESS_KEY = "text-chess-puzzle-progress";
 
 export function getGameRecords(): GameRecord[] {
   try {
@@ -52,4 +53,65 @@ export function deleteActiveGame(id: string): void {
   const all = getActiveGames();
   delete all[id];
   localStorage.setItem(ACTIVE_KEY, JSON.stringify(all));
+}
+
+function getPuzzleProgressRaw(): { solvedIds: string[]; lastSolvedAt: Record<string, string> } {
+  try {
+    const data = localStorage.getItem(PUZZLE_PROGRESS_KEY);
+    if (!data) return { solvedIds: [], lastSolvedAt: {} };
+    const parsed = JSON.parse(data);
+    return {
+      solvedIds: Array.isArray(parsed.solvedIds) ? parsed.solvedIds : [],
+      lastSolvedAt: parsed.lastSolvedAt && typeof parsed.lastSolvedAt === "object" ? parsed.lastSolvedAt : {},
+    };
+  } catch {
+    return { solvedIds: [], lastSolvedAt: {} };
+  }
+}
+
+export function getPuzzleProgress(): PuzzleProgress {
+  return getPuzzleProgressRaw();
+}
+
+export function savePuzzleProgress(progress: PuzzleProgress): void {
+  localStorage.setItem(
+    PUZZLE_PROGRESS_KEY,
+    JSON.stringify({
+      solvedIds: progress.solvedIds,
+      lastSolvedAt: progress.lastSolvedAt,
+    })
+  );
+}
+
+export function markPuzzleSolved(puzzleId: string): void {
+  const { solvedIds, lastSolvedAt } = getPuzzleProgressRaw();
+  if (!solvedIds.includes(puzzleId)) {
+    solvedIds.push(puzzleId);
+  }
+  lastSolvedAt[puzzleId] = new Date().toISOString();
+  localStorage.setItem(
+    PUZZLE_PROGRESS_KEY,
+    JSON.stringify({ solvedIds, lastSolvedAt })
+  );
+}
+
+export function isPuzzleSolved(puzzleId: string): boolean {
+  return getPuzzleProgressRaw().solvedIds.includes(puzzleId);
+}
+
+export function unmarkPuzzleSolved(puzzleId: string): void {
+  const { solvedIds, lastSolvedAt } = getPuzzleProgressRaw();
+  const filtered = solvedIds.filter((id) => id !== puzzleId);
+  delete lastSolvedAt[puzzleId];
+  localStorage.setItem(
+    PUZZLE_PROGRESS_KEY,
+    JSON.stringify({ solvedIds: filtered, lastSolvedAt })
+  );
+}
+
+export function clearPuzzleProgress(): void {
+  localStorage.setItem(
+    PUZZLE_PROGRESS_KEY,
+    JSON.stringify({ solvedIds: [], lastSolvedAt: {} })
+  );
 }

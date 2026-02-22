@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Puzzle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -55,9 +55,10 @@ function resultLabel(result: GameRecord["result"]): string {
 interface MainMenuProps {
   onStartGame: (difficulty: DifficultyLevel, playerColor: PlayerColor) => void;
   onViewGame: (record: GameRecord) => void;
+  onOpenPuzzles: () => void;
 }
 
-export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
+export function MainMenu({ onStartGame, onViewGame, onOpenPuzzles }: MainMenuProps) {
   const [difficulty, setDifficulty] = useState<DifficultyLevel>("Medium");
   const [playerColor, setPlayerColor] = useState<PlayerColor>("white");
   const [records, setRecords] = useState(() => getGameRecords());
@@ -112,12 +113,22 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
           </Select>
         </div>
 
-        <Button
-          onClick={() => onStartGame(difficulty, playerColor)}
-          className="min-h-[44px] w-full sm:w-auto sm:min-h-0"
-        >
-          Start game
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => onStartGame(difficulty, playerColor)}
+            className="min-h-[44px] sm:min-h-0"
+          >
+            Start game
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onOpenPuzzles}
+            className="min-h-[44px] sm:min-h-0"
+          >
+            <Puzzle className="h-4 w-4 mr-2" />
+            Puzzles
+          </Button>
+        </div>
 
         <div className="space-y-2 pt-4 border-t">
           <p className="text-sm font-medium">Game history</p>

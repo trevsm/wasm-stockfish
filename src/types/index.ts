@@ -38,3 +38,34 @@ export function getApproxElo(difficulty: DifficultyLevel): number {
   const settings = DIFFICULTY_SETTINGS[difficulty];
   return settings.type === "skill" ? settings.approxElo : settings.elo;
 }
+
+// Puzzle types
+
+export type PuzzleTheme =
+  | "fork"
+  | "pin"
+  | "skewer"
+  | "discoveredAttack"
+  | "doubleCheck"
+  | "mateIn1"
+  | "mateIn2"
+  | "mateIn3"
+  | "endgame"
+  | "pawnEndgame"
+  | "rookEndgame"
+  | "sacrifice"
+  | "deflection"
+  | "clearance";
+
+export interface Puzzle {
+  id: string;
+  fen: string;
+  moves: string[];
+  themes: PuzzleTheme[];
+  rating: number;
+}
+
+export interface PuzzleProgress {
+  solvedIds: string[];
+  lastSolvedAt: Record<string, string>;
+}
