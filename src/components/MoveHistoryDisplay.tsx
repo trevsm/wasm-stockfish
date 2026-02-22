@@ -33,6 +33,7 @@ export function MoveHistoryDisplay({ moveHistory, chess }: MoveHistoryDisplayPro
           size="sm"
           className="min-h-[44px] min-w-[44px] sm:min-h-7 sm:min-w-0 sm:h-7 sm:px-2 px-3 text-muted-foreground"
           onClick={() => setShowBoard(!showBoard)}
+          onMouseDown={(e) => e.preventDefault()}
         >
           {showBoard ? (
             <EyeOff className="h-4 w-4 mr-1" />

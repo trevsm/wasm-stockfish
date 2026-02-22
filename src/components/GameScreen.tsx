@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,18 @@ export function GameScreen({
     onResign,
     onGameEnd,
   });
+
+  const moveInputRef = useRef<HTMLInputElement>(null);
+  const prevIsPlayerTurn = useRef(isPlayerTurn);
+
+  // Keep input focused when it becomes the player's turn (e.g. after engine move)
+  // so mobile users can type their next move without tapping the input again.
+  useEffect(() => {
+    if (isPlayerTurn && !prevIsPlayerTurn.current) {
+      moveInputRef.current?.focus();
+    }
+    prevIsPlayerTurn.current = isPlayerTurn;
+  }, [isPlayerTurn]);
 
   return (
     <Card className="w-full max-w-md mx-auto relative">
@@ -132,6 +145,7 @@ export function GameScreen({
         {!gameOver && (
           <form onSubmit={handleSubmitMove} className="flex flex-col sm:flex-row gap-2">
             <Input
+              ref={moveInputRef}
               placeholder={moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move"}
               value={moveInput}
               onChange={(e) => setMoveInput(e.target.value)}
@@ -146,6 +160,7 @@ export function GameScreen({
               type="submit"
               disabled={!isPlayerTurn || thinking || !ready}
               className="min-h-[44px] sm:min-h-0 shrink-0"
+              onMouseDown={(e) => e.preventDefault()}
             >
               Play
             </Button>
