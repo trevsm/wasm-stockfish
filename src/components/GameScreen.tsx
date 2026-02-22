@@ -184,6 +184,8 @@ export function GameScreen({
                 )}
               </div>
               <ChessKeyboard
+                input={moveInput}
+                chess={chess}
                 onKey={handleChessKey}
                 onBackspace={handleBackspace}
                 onSubmit={handleKeyboardSubmit}
