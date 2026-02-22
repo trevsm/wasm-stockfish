@@ -60,10 +60,10 @@ export function GameScreen({
 
   return (
     <Card className="w-full max-w-md mx-auto relative">
-      <CardHeader>
+      <CardHeader className="pb-2 sm:pb-6">
         <div className="flex items-start justify-between gap-2">
-          <div>
-            <CardTitle>Game vs Stockfish — {difficulty}</CardTitle>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-lg sm:text-xl">Game vs Stockfish — {difficulty}</CardTitle>
             <p className="text-sm text-muted-foreground">
               You play {playerColor}. {!ready && "Loading engine…"}
             </p>
@@ -73,15 +73,15 @@ export function GameScreen({
               onOpenChange={(open) => !open && setConfirmingResign(false)}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={thinking}>
+                <Button variant="ghost" size="icon" disabled={thinking} className="h-11 w-11 sm:h-9 sm:w-9 shrink-0">
                   <MoreHorizontal className="h-4 w-4" />
                   <span className="sr-only">Actions</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="min-w-[180px]">
                 {!confirmingResign ? (
                   <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
+                    className="text-destructive focus:text-destructive min-h-[44px] sm:min-h-0 sm:py-1.5"
                     onSelect={(e) => {
                       e.preventDefault();
                       setConfirmingResign(true);
@@ -92,12 +92,13 @@ export function GameScreen({
                 ) : (
                   <>
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive font-medium"
+                      className="text-destructive focus:text-destructive font-medium min-h-[44px] sm:min-h-0 sm:py-1.5"
                       onClick={handleResign}
                     >
                       Confirm resign
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      className="min-h-[44px] sm:min-h-0 sm:py-1.5"
                       onSelect={(e) => {
                         e.preventDefault();
                         setConfirmingResign(false);
@@ -129,7 +130,7 @@ export function GameScreen({
         )}
 
         {!gameOver && (
-          <form onSubmit={handleSubmitMove} className="flex gap-2">
+          <form onSubmit={handleSubmitMove} className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder={moveHistory.length === 0 ? "Your move (e.g. e4, Nf3)" : "Your move"}
               value={moveInput}
@@ -139,15 +140,22 @@ export function GameScreen({
               spellCheck="false"
               autoCorrect="off"
               autoCapitalize="off"
+              className="text-base"
             />
-            <Button type="submit" disabled={!isPlayerTurn || thinking || !ready}>
+            <Button
+              type="submit"
+              disabled={!isPlayerTurn || thinking || !ready}
+              className="min-h-[44px] sm:min-h-0 shrink-0"
+            >
               Play
             </Button>
           </form>
         )}
 
         {gameOver && (
-          <Button onClick={handleGameEndReturn}>Back to menu</Button>
+          <Button onClick={handleGameEndReturn} className="min-h-[44px] w-full sm:w-auto sm:min-h-0">
+            Back to menu
+          </Button>
         )}
 
         <NotationGuide />

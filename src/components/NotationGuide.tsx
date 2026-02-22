@@ -9,7 +9,7 @@ export function NotationGuide() {
       <button
         type="button"
         onClick={() => setShowGuide(!showGuide)}
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="flex items-center gap-1 min-h-[44px] py-2 -my-2 sm:min-h-0 sm:py-0 sm:my-0 text-sm text-muted-foreground hover:text-foreground active:text-foreground transition-colors -ml-1 pl-1"
       >
         {showGuide ? (
           <ChevronUp className="h-4 w-4" />

@@ -70,20 +70,20 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Text Chess vs Stockfish</CardTitle>
-        <p className="text-sm text-muted-foreground">
+      <CardHeader className="pb-2 sm:pb-6">
+        <CardTitle className="text-lg sm:text-xl">Text Chess vs Stockfish</CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
           Play chess against Stockfish. Enter your moves in algebraic notation.
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 sm:space-y-6 pt-0">
         <div className="space-y-2">
           <label className="text-sm font-medium">Difficulty</label>
           <Select
             value={difficulty}
             onValueChange={(v) => setDifficulty(v as DifficultyLevel)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px] sm:min-h-[36px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -102,7 +102,7 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
             value={playerColor}
             onValueChange={(v) => setPlayerColor(v as PlayerColor)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px] sm:min-h-[36px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -112,7 +112,10 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
           </Select>
         </div>
 
-        <Button onClick={() => onStartGame(difficulty, playerColor)}>
+        <Button
+          onClick={() => onStartGame(difficulty, playerColor)}
+          className="min-h-[44px] w-full sm:w-auto sm:min-h-0"
+        >
           Start game
         </Button>
 
@@ -121,23 +124,23 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
           {records.length === 0 ? (
             <p className="text-sm text-muted-foreground">No games played yet.</p>
           ) : (
-            <ul className="space-y-2 max-h-48 overflow-y-auto">
+            <ul className="space-y-2 max-h-48 sm:max-h-56 overflow-y-auto overscroll-contain -mx-1 px-1">
               {records.map((r) => (
                 <li key={r.id}>
-                  <div className="flex items-center gap-1 rounded-md border bg-muted/30 hover:bg-muted/50 transition-colors group">
+                  <div className="flex items-stretch gap-0 rounded-lg border bg-muted/30 hover:bg-muted/50 active:bg-muted/70 transition-colors group">
                     <button
                       type="button"
                       onClick={() => onViewGame(r)}
-                      className="flex-1 flex justify-between items-center px-3 py-2 text-sm text-left cursor-pointer min-w-0"
+                      className="flex-1 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5 sm:gap-2 px-3 py-3 sm:py-2 text-sm text-left cursor-pointer min-w-0 min-h-[44px] sm:min-h-0"
                     >
-                      <div>
+                      <div className="flex flex-wrap gap-x-1">
                         <span className="font-medium">{r.difficulty}</span>
-                        <span className="text-muted-foreground mx-1">·</span>
+                        <span className="text-muted-foreground">·</span>
                         <span>{resultLabel(r.result)}</span>
-                        <span className="text-muted-foreground mx-1">·</span>
+                        <span className="text-muted-foreground">·</span>
                         <span className="text-muted-foreground">{r.playerColor}</span>
                       </div>
-                      <span className="text-muted-foreground text-xs shrink-0 ml-2">
+                      <span className="text-muted-foreground text-xs">
                         {formatDate(r.date)}
                       </span>
                     </button>
@@ -145,7 +148,7 @@ export function MainMenu({ onStartGame, onViewGame }: MainMenuProps) {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      className="h-11 w-11 sm:h-8 sm:w-8 shrink-0 text-muted-foreground hover:text-destructive rounded-l-none"
                       onClick={(e) => handleDelete(e, r.id)}
                       aria-label="Delete game"
                     >

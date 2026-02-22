@@ -141,8 +141,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6">
+      <div className="absolute safe-top-pos safe-right">
         <ThemeToggle />
       </div>
 
