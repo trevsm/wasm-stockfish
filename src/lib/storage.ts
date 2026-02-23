@@ -121,6 +121,7 @@ export function clearPuzzleProgress(): void {
 export interface PuzzleListState {
   themeFilter: string;
   sort: string;
+  pinSolvedToTop: boolean;
   scrollTop: number;
 }
 
@@ -153,7 +154,7 @@ export function getPuzzleListState(): Partial<PuzzleListState> {
 }
 
 export function savePuzzleListState(updates: Partial<PuzzleListState>): void {
-  if ("themeFilter" in updates || "sort" in updates) {
+  if ("themeFilter" in updates || "sort" in updates || "pinSolvedToTop" in updates) {
     const prefs = getPuzzleListPrefsRaw();
     localStorage.setItem(
       PUZZLE_LIST_PREFS_KEY,

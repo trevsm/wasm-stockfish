@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { ArrowUp, Check, ChevronLeft, RotateCcw } from "lucide-react";
+import { ArrowUp, Check, ChevronLeft, Pin, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -57,12 +57,16 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
       ? (savedState.sort as SortOption)
       : "rating-asc"
   );
+  const [pinSolvedToTop, setPinSolvedToTop] = useState(() =>
+    savedState.pinSolvedToTop !== false
+  );
   const [, forceUpdate] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const scrollRestoredRef = useRef(false);
   const prevFilterSortRef = useRef<{
     themeFilter: PuzzleTheme | "all";
     sort: SortOption;
+    pinSolvedToTop: boolean;
   } | null>(null);
 
   const progress = getPuzzleProgress();
@@ -93,6 +97,11 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
     const getThemeLabel = (t: string) =>
       PUZZLE_THEMES.find((pt) => pt.value === t)?.label ?? t;
     arr.sort((a, b) => {
+      if (pinSolvedToTop) {
+        const aSolved = solvedSet.has(a.id);
+        const bSolved = solvedSet.has(b.id);
+        if (aSolved !== bSolved) return aSolved ? -1 : 1;
+      }
       switch (sort) {
         case "rating-asc":
           return a.rating - b.rating;
@@ -111,7 +120,7 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
       }
     });
     return arr;
-  }, [filteredPuzzles, sort, themeFilter]);
+  }, [filteredPuzzles, sort, themeFilter, pinSolvedToTop, solvedSet]);
 
   const { visibleItems, totalHeight } = useVirtualList(
     sortedPuzzles,
@@ -124,15 +133,18 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
   );
 
   useEffect(() => {
-    savePuzzleListState({ themeFilter, sort });
+    savePuzzleListState({ themeFilter, sort, pinSolvedToTop });
     const prev = prevFilterSortRef.current;
-    prevFilterSortRef.current = { themeFilter, sort };
-    if (prev && (prev.themeFilter !== themeFilter || prev.sort !== sort)) {
+    prevFilterSortRef.current = { themeFilter, sort, pinSolvedToTop };
+    if (
+      prev &&
+      (prev.themeFilter !== themeFilter || prev.sort !== sort || prev.pinSolvedToTop !== pinSolvedToTop)
+    ) {
       savePuzzleListState({ scrollTop: 0 });
       const el = scrollContainerRef.current;
       if (el) el.scrollTop = 0;
     }
-  }, [themeFilter, sort]);
+  }, [themeFilter, sort, pinSolvedToTop]);
 
   useEffect(() => {
     const el = scrollContainerRef.current;
@@ -187,11 +199,24 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-base sm:text-lg">Puzzles</CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {solvedSet.size} of {PUZZLES.length} solved
-            </p>
+          <div className="flex-1 min-w-0 flex items-center gap-2">
+            <div>
+              <CardTitle className="text-base sm:text-lg">Puzzles</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {solvedSet.size} of {PUZZLES.length} solved
+              </p>
+            </div>
+            {solvedSet.size > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-8 w-8 shrink-0 ${pinSolvedToTop ? "text-primary" : "text-muted-foreground"}`}
+                onClick={() => setPinSolvedToTop((p) => !p)}
+                aria-label={pinSolvedToTop ? "Unpin solved from top" : "Pin solved to top"}
+              >
+                <Pin className={`h-4 w-4 ${pinSolvedToTop ? "fill-current" : ""}`} />
+              </Button>
+            )}
           </div>
           {solvedSet.size > 0 && (
             <Popover open={resetPopoverOpen} onOpenChange={setResetPopoverOpen}>
@@ -281,6 +306,7 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
           >
             {visibleItems.map(({ item: puzzle, offsetTop }) => {
               const isSolved = solvedSet.has(puzzle.id);
+              const showPinnedBadge = isSolved && pinSolvedToTop;
               return (
                 <div
                   key={puzzle.id}
@@ -290,6 +316,11 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
                     height: LIST_ITEM_HEIGHT,
                   }}
                 >
+                  {showPinnedBadge && (
+                    <span className="absolute top-1.5 right-2 opacity-50 pointer-events-none" aria-hidden>
+                      <Pin className="h-3.5 w-3.5 rotate-[-25deg]" />
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleSelectPuzzle(puzzle)}
