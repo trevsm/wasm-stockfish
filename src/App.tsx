@@ -211,7 +211,7 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] max-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 pt-12 sm:pt-6 overflow-hidden">
-      <div className="absolute top-[max(0.5rem,env(safe-area-inset-top))] left-4 right-4 flex items-center justify-between">
+      <div className="absolute top-[max(0.5rem,env(safe-area-inset-top))] left-4 right-4 flex items-center justify-between z-20">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">v{__APP_VERSION__}</span>
           <UpdateButton />

@@ -52,11 +52,10 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
       ? (savedState.themeFilter as PuzzleTheme | "all")
       : "all"
   );
-  const [sort, setSort] = useState<SortOption>(() =>
-    VALID_SORTS.includes((savedState.sort as SortOption) ?? "rating-asc")
-      ? (savedState.sort as SortOption)
-      : "rating-asc"
-  );
+  const [sort, setSort] = useState<SortOption>(() => {
+    const saved = savedState.sort as SortOption | undefined;
+    return saved && VALID_SORTS.includes(saved) ? saved : "rating-asc";
+  });
   const [pinSolvedToTop, setPinSolvedToTop] = useState(() =>
     savedState.pinSolvedToTop !== false
   );
