@@ -3,6 +3,7 @@ import { GameScreen } from "@/components/GameScreen";
 import { GameHistoryView } from "@/components/GameHistoryView";
 import { MainMenu } from "@/components/MainMenu";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { UpdateButton } from "@/components/UpdateButton";
 import {
   getActiveGame,
   getGameRecordById,
@@ -211,7 +212,10 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] max-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 pt-12 sm:pt-6 overflow-hidden">
       <div className="absolute top-[max(0.5rem,env(safe-area-inset-top))] left-4 right-4 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">v{__APP_VERSION__}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">v{__APP_VERSION__}</span>
+          <UpdateButton />
+        </div>
         <div className="-mr-2">
           <ThemeToggle />
         </div>

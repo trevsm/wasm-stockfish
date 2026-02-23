@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["stockfish.js", "stockfish.wasm"],
       manifest: {
         name: "Text Chess vs Stockfish",
@@ -51,6 +51,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,wasm}"],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+      },
+      devOptions: {
+        enabled: false,
       },
     }),
   ],

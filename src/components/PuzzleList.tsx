@@ -3,6 +3,11 @@ import { ArrowUp, Check, ChevronLeft, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -61,11 +66,12 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
   } | null>(null);
 
   const progress = getPuzzleProgress();
-  const handleResetProgress = () => {
-    if (window.confirm("Reset all puzzle progress? You will need to solve them again.")) {
-      clearPuzzleProgress();
-      forceUpdate((n) => n + 1);
-    }
+  const [resetPopoverOpen, setResetPopoverOpen] = useState(false);
+
+  const handleConfirmReset = () => {
+    clearPuzzleProgress();
+    forceUpdate((n) => n + 1);
+    setResetPopoverOpen(false);
   };
   const solvedSet = useMemo(
     () => new Set(progress.solvedIds),
@@ -169,7 +175,7 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
   };
 
   return (
-    <Card className="flex w-full max-w-md max-h-[90dvh] mx-auto relative flex-col min-h-0 mb-4 sm:mb-6">
+    <Card className="flex w-full max-w-md max-h-[90dvh] sm:max-h-[32rem] mx-auto relative flex-col min-h-0 mb-4 sm:mb-6">
       <CardHeader className="p-4 pb-2 sm:p-4 sm:pb-3 space-y-0 shrink-0">
         <div className="flex items-center gap-2">
           <Button
@@ -188,16 +194,40 @@ export function PuzzleList({ onSelectPuzzle, onBack }: PuzzleListProps) {
             </p>
           </div>
           {solvedSet.size > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              onClick={handleResetProgress}
-              aria-label="Reset all puzzle progress"
-            >
-              <RotateCcw className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Reset</span>
-            </Button>
+            <Popover open={resetPopoverOpen} onOpenChange={setResetPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  aria-label="Reset all puzzle progress"
+                >
+                  <RotateCcw className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Reset</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Reset all puzzle progress? You will need to solve them again.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setResetPopoverOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleConfirmReset}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
       </CardHeader>

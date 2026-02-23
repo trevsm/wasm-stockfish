@@ -1,7 +1,7 @@
 {
   "name": "wasm-stockfish",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "postinstall": "node -e \"const fs=require('fs');const p=require('path');const src=p.join('node_modules','stockfish','bin','stockfish-18-lite-single');const dest=p.join('public');fs.mkdirSync(dest,{recursive:true});fs.copyFileSync(src+'.js',p.join(dest,'stockfish.js'));fs.copyFileSync(src+'.wasm',p.join(dest,'stockfish.wasm'));\"",
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.2",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "chess.js": "^1.0.0",
