@@ -104,12 +104,12 @@ export function GameScreen({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto relative">
-      <CardHeader className="pb-2 sm:pb-6">
+    <Card className="flex w-full max-w-md max-h-[90dvh] mx-auto relative flex-col min-h-0 mb-4 sm:mb-6">
+      <CardHeader className="p-4 pb-2 sm:p-4 sm:pb-3 space-y-0 shrink-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <CardTitle className="text-lg sm:text-xl">Game vs Stockfish — {difficulty}</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-base sm:text-lg">Game vs Stockfish — {difficulty}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
               You play {playerColor}. {!ready && "Loading engine…"}
             </p>
           </div>
@@ -118,7 +118,7 @@ export function GameScreen({
               onOpenChange={(open) => !open && setConfirmingResign(false)}
             >
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={thinking} className="h-11 w-11 sm:h-9 sm:w-9 shrink-0">
+                <Button variant="ghost" size="icon" disabled={thinking} className="h-8 w-8 shrink-0">
                   <MoreHorizontal className="h-4 w-4" />
                   <span className="sr-only">Actions</span>
                 </Button>
@@ -158,7 +158,7 @@ export function GameScreen({
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-4">
         <MoveHistoryDisplay
           moveHistory={moveHistory}
           chess={chess}

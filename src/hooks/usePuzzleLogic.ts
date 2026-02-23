@@ -1,7 +1,7 @@
 import { Chess } from "chess.js";
 import { useCallback, useEffect, useState } from "react";
 import { getMoveErrorMessage } from "@/lib/moveValidation";
-import { markPuzzleSolved, unmarkPuzzleSolved } from "@/lib/storage";
+import { markPuzzleSolved, unmarkPuzzleSolved, isPuzzleSolved } from "@/lib/storage";
 import type { Puzzle } from "@/types";
 
 function uciFromMove(move: { from: string; to: string; promotion?: string }): string {
@@ -24,7 +24,9 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
   const [solved, setSolved] = useState(false);
 
   const { fen, moves } = puzzle;
-  const playerColor = fen.includes(" w ") ? "white" : "black";
+  // In Lichess puzzles, the first move is the opponent's setup move,
+  // so the player is the OPPOSITE color of who moves first in the FEN
+  const playerColor = fen.includes(" w ") ? "black" : "white";
 
   useEffect(() => {
     const c = new Chess(fen);
@@ -35,10 +37,36 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
     setMoveError("");
     setStatus("");
     setSolved(false);
-  }, [puzzle.id, fen]);
+    
+    // If puzzle is already solved, show the solution automatically
+    if (isPuzzleSolved(puzzle.id)) {
+      const history: Array<{ san: string; by: "player" | "opponent" }> = [];
+      const solutionChess = new Chess(fen);
+      for (let i = 0; i < moves.length; i++) {
+        const uci = moves[i];
+        const from = uci.slice(0, 2);
+        const to = uci.slice(2, 4);
+        const promotion = uci.length >= 5 ? uci[4] : undefined;
+        const m = solutionChess.move({
+          from,
+          to,
+          promotion: promotion as "q" | "r" | "b" | "n" | undefined,
+        } as Parameters<Chess["move"]>[0]);
+        if (m) {
+          history.push({ san: m.san, by: i % 2 === 0 ? "opponent" : "player" });
+        }
+      }
+      setChess(solutionChess);
+      setMoveHistory(history);
+      setMoveIndex(moves.length);
+      setSolved(true);
+      setStatus("Solution: " + history.map((h) => h.san).join(", "));
+    }
+  }, [puzzle.id, fen, moves]);
 
-  const isPlayerTurn = chess && moveIndex < moves.length && moveIndex % 2 === 0;
-  const totalPlayerMoves = Math.ceil(moves.length / 2);
+  // Player moves at odd indices (1, 3, 5...), opponent at even (0, 2, 4...)
+  const isPlayerTurn = chess && moveIndex < moves.length && moveIndex % 2 === 1;
+  const totalPlayerMoves = Math.floor(moves.length / 2);
 
   const applyOpponentMove = useCallback(() => {
     if (!chess || moveIndex >= moves.length) return;
@@ -62,7 +90,8 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
       onSolved();
       return;
     }
-    if (moveIndex % 2 === 1) {
+    // Opponent moves at even indices (0, 2, 4...)
+    if (moveIndex % 2 === 0) {
       applyOpponentMove();
     }
   }, [chess, moveIndex, moves.length, solved, puzzle.id, applyOpponentMove, onSolved]);
@@ -108,7 +137,12 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
     const uci = moves[moveIndex];
     const from = uci.slice(0, 2);
     const to = uci.slice(2, 4);
-    const move = chess.move({ from, to } as Parameters<Chess["move"]>[0]);
+    const promotion = uci.length >= 5 ? (uci[4] as "q" | "r" | "b" | "n") : undefined;
+    const move = chess.move({
+      from,
+      to,
+      promotion,
+    } as Parameters<Chess["move"]>[0]);
     if (move) {
       setMoveHistory((h) => [...h, { san: move.san, by: "player" }]);
       setMoveInput("");
@@ -145,7 +179,8 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
         promotion: promotion as "q" | "r" | "b" | "n" | undefined,
       } as Parameters<Chess["move"]>[0]);
       if (m) {
-        history.push({ san: m.san, by: i % 2 === 0 ? "player" : "opponent" });
+        // Opponent at even indices, player at odd
+        history.push({ san: m.san, by: i % 2 === 0 ? "opponent" : "player" });
       }
     }
     setChess(c);
@@ -155,7 +190,9 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
     setStatus("Solution: " + history.map((h) => h.san).join(", "));
     setMoveInput("");
     setMoveError("");
-  }, [chess, solved, puzzle.fen, moves]);
+    markPuzzleSolved(puzzle.id);
+    onSolved();
+  }, [chess, solved, puzzle.id, puzzle.fen, moves, onSolved]);
 
   return {
     chess,
@@ -172,6 +209,8 @@ export function usePuzzleLogic({ puzzle, onSolved, onBack }: UsePuzzleLogicParam
     handleReset,
     handleBack: onBack,
     playerColor,
-    progress: totalPlayerMoves > 0 ? `${Math.floor(moveIndex / 2) + (isPlayerTurn ? 1 : 0)} of ${totalPlayerMoves}` : `1 of ${totalPlayerMoves}`,
+    progress: totalPlayerMoves > 0
+      ? `${Math.floor((moveIndex + 1) / 2)} of ${totalPlayerMoves}`
+      : `1 of 1`,
   };
 }

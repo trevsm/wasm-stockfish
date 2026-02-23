@@ -13,10 +13,12 @@ export function useStockfish(settings: DifficultySettings) {
     settings.type === "skill" ? `skill-${settings.level}` : `elo-${settings.elo}`;
 
   useEffect(() => {
-    const worker = new Worker("/stockfish.js", { type: "module" });
+    let isActive = true;
+    const worker = new Worker("/stockfish.js");
     workerRef.current = worker;
 
-    const handleMessage = (e: MessageEvent<string>) => {
+    worker.onmessage = (e: MessageEvent<string>) => {
+      if (!isActive) return;
       const line = typeof e.data === "string" ? e.data : String(e.data);
       if (line === "readyok") {
         setReady(true);
@@ -31,22 +33,31 @@ export function useStockfish(settings: DifficultySettings) {
       }
     };
 
-    worker.addEventListener("message", handleMessage);
+    worker.onerror = (e: ErrorEvent) => {
+      console.error("Stockfish worker error:", e.message, e);
+    };
 
-    worker.postMessage("uci");
+    // Use setTimeout to ensure the onmessage handler is fully attached
+    // before sending commands (fixes race condition on fast devices)
+    setTimeout(() => {
+      if (!isActive) return;
+      worker.postMessage("uci");
 
-    if (settings.type === "skill") {
-      worker.postMessage(`setoption name Skill Level value ${settings.level}`);
-    } else {
-      worker.postMessage("setoption name UCI_LimitStrength value true");
-      worker.postMessage(`setoption name UCI_Elo value ${settings.elo}`);
-    }
+      if (settings.type === "skill") {
+        worker.postMessage(`setoption name Skill Level value ${settings.level}`);
+      } else {
+        worker.postMessage("setoption name UCI_LimitStrength value true");
+        worker.postMessage(`setoption name UCI_Elo value ${settings.elo}`);
+      }
 
-    worker.postMessage("ucinewgame");
-    worker.postMessage("isready");
+      worker.postMessage("ucinewgame");
+      worker.postMessage("isready");
+    }, 0);
 
     return () => {
-      worker.removeEventListener("message", handleMessage);
+      isActive = false;
+      worker.onmessage = null;
+      worker.onerror = null;
       worker.postMessage("quit");
       worker.terminate();
       workerRef.current = null;

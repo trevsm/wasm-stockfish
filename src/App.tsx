@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { GameScreen } from "@/components/GameScreen";
 import { GameHistoryView } from "@/components/GameHistoryView";
 import { MainMenu } from "@/components/MainMenu";
-import { PuzzleList } from "@/components/PuzzleList";
-import { PuzzleScreen } from "@/components/PuzzleScreen";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getPuzzleById } from "@/data/puzzles";
 import {
   getActiveGame,
   getGameRecordById,
@@ -13,6 +10,10 @@ import {
 } from "@/lib/storage";
 import type { DifficultyLevel, GameRecord, PlayerColor } from "@/types";
 import type { Puzzle } from "@/types";
+
+const LazyPuzzleView = lazy(() =>
+  import("@/components/PuzzleView").then((m) => ({ default: m.PuzzleView }))
+);
 
 type Screen = "menu" | "game" | "history" | "puzzles" | "puzzle";
 
@@ -69,10 +70,7 @@ function useRouteState() {
       return { screen: "puzzles" as const };
     }
     if (screen === "puzzle" && puzzleId) {
-      const puzzle = getPuzzleById(puzzleId);
-      if (puzzle) {
-        return { screen: "puzzle" as const, puzzle };
-      }
+      return { screen: "puzzle" as const, puzzleId, puzzle: null as Puzzle | null };
     }
     return { screen: "menu" as const };
   });
@@ -96,11 +94,8 @@ function useRouteState() {
         return;
       }
       if (screen === "puzzle" && puzzleId) {
-        const puzzle = getPuzzleById(puzzleId);
-        if (puzzle) {
-          setState({ screen: "puzzle", puzzle });
-          return;
-        }
+        setState({ screen: "puzzle", puzzleId, puzzle: null });
+        return;
       }
       if (screen === "game" && gameId) {
         const active = getActiveGame(gameId);
@@ -178,15 +173,43 @@ export default function App() {
   };
 
   const handleSelectPuzzle = (puzzle: Puzzle) => {
-    navigateTo(`/puzzle/${puzzle.id}`, { screen: "puzzle", puzzle });
+    navigateTo(`/puzzle/${puzzle.id}`, {
+      screen: "puzzle",
+      puzzleId: puzzle.id,
+      puzzle,
+    });
   };
 
   const handlePuzzleBack = () => {
-    navigateTo("/puzzles", { screen: "puzzles" });
+    if (state.screen === "puzzles") {
+      navigateTo("/", { screen: "menu" });
+    } else {
+      navigateTo("/puzzles", { screen: "puzzles" });
+    }
   };
 
+  const handleResolvePuzzle = (puzzle: Puzzle | null) => {
+    if (puzzle) {
+      setState((s) =>
+        s.screen === "puzzle" ? { ...s, puzzle } : s
+      );
+    } else {
+      navigateTo("/puzzles", { screen: "puzzles" });
+    }
+  };
+
+  const puzzleMode =
+    state.screen === "puzzles"
+      ? "list"
+      : state.screen === "puzzle"
+        ? "puzzle"
+        : null;
+  const showPuzzleView =
+    state.screen === "puzzles" ||
+    (state.screen === "puzzle" && (state.puzzle || state.puzzleId));
+
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 pt-12 sm:pt-6">
+    <div className="min-h-[100dvh] max-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 pt-12 sm:pt-6 overflow-hidden">
       <div className="absolute top-[max(0.5rem,env(safe-area-inset-top))] left-4 right-4 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">v{__APP_VERSION__}</span>
         <div className="-mr-2">
@@ -202,16 +225,24 @@ export default function App() {
         />
       )}
 
-      {state.screen === "puzzles" && (
-        <PuzzleList onSelectPuzzle={handleSelectPuzzle} onBack={handleBack} />
-      )}
-
-      {state.screen === "puzzle" && state.puzzle && (
-        <PuzzleScreen
-          puzzle={state.puzzle}
-          onBack={handlePuzzleBack}
-          onSolved={() => {}}
-        />
+      {showPuzzleView && puzzleMode && (
+        <Suspense
+          fallback={
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <p className="mt-4">Loading puzzles…</p>
+            </div>
+          }
+        >
+          <LazyPuzzleView
+            mode={puzzleMode}
+            puzzle={state.screen === "puzzle" ? state.puzzle : undefined}
+            puzzleId={state.screen === "puzzle" ? state.puzzleId : undefined}
+            onSelectPuzzle={handleSelectPuzzle}
+            onBack={handlePuzzleBack}
+            onResolvePuzzle={handleResolvePuzzle}
+          />
+        </Suspense>
       )}
 
       {state.screen === "game" && state.gameParams && state.gameId && (

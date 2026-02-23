@@ -3,6 +3,8 @@ import type { ActiveGame, GameRecord, PuzzleProgress } from "@/types";
 const STORAGE_KEY = "text-chess-games";
 const ACTIVE_KEY = "text-chess-active";
 const PUZZLE_PROGRESS_KEY = "text-chess-puzzle-progress";
+const PUZZLE_LIST_PREFS_KEY = "text-chess-puzzle-list-prefs";
+const PUZZLE_LIST_SCROLL_KEY = "text-chess-puzzle-list-scroll";
 
 export function getGameRecords(): GameRecord[] {
   try {
@@ -114,4 +116,54 @@ export function clearPuzzleProgress(): void {
     PUZZLE_PROGRESS_KEY,
     JSON.stringify({ solvedIds: [], lastSolvedAt: {} })
   );
+}
+
+export interface PuzzleListState {
+  themeFilter: string;
+  sort: string;
+  scrollTop: number;
+}
+
+function getPuzzleListPrefsRaw(): Partial<PuzzleListState> {
+  try {
+    const data = localStorage.getItem(PUZZLE_LIST_PREFS_KEY);
+    if (!data) return {};
+    return JSON.parse(data);
+  } catch {
+    return {};
+  }
+}
+
+function getPuzzleListScrollRaw(): number | undefined {
+  try {
+    const data = sessionStorage.getItem(PUZZLE_LIST_SCROLL_KEY);
+    if (!data) return undefined;
+    const n = Number(JSON.parse(data));
+    return Number.isFinite(n) ? n : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getPuzzleListState(): Partial<PuzzleListState> {
+  return {
+    ...getPuzzleListPrefsRaw(),
+    scrollTop: getPuzzleListScrollRaw(),
+  };
+}
+
+export function savePuzzleListState(updates: Partial<PuzzleListState>): void {
+  if ("themeFilter" in updates || "sort" in updates) {
+    const prefs = getPuzzleListPrefsRaw();
+    localStorage.setItem(
+      PUZZLE_LIST_PREFS_KEY,
+      JSON.stringify({ ...prefs, ...updates })
+    );
+  }
+  if ("scrollTop" in updates) {
+    sessionStorage.setItem(
+      PUZZLE_LIST_SCROLL_KEY,
+      JSON.stringify(updates.scrollTop ?? 0)
+    );
+  }
 }

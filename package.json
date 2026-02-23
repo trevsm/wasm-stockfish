@@ -7,6 +7,7 @@
     "postinstall": "node -e \"const fs=require('fs');const p=require('path');const src=p.join('node_modules','stockfish','bin','stockfish-18-lite-single');const dest=p.join('public');fs.mkdirSync(dest,{recursive:true});fs.copyFileSync(src+'.js',p.join(dest,'stockfish.js'));fs.copyFileSync(src+'.wasm',p.join(dest,'stockfish.wasm'));\"",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "fetch-puzzles": "node scripts/fetch-puzzles.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
